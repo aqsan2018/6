@@ -182,19 +182,34 @@
             let rainInterval;
             const cardStates = new Array(12).fill(false); // false = not revealed
 
+            // --- ADDED SHUFFLE FUNCTION ---
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+                }
+            }
+
             function initGame() {
-                for (let i = 1; i <= 12; i++) {
+                // --- ADDED RANDOMIZATION LOGIC ---
+                const imageNumbers = Array.from({length: 12}, (_, i) => i + 1); // Creates [1, 2, ..., 12]
+                shuffleArray(imageNumbers); // Shuffles the array in place
+
+                // --- UPDATED LOOP to use the shuffled array ---
+                for (let i = 0; i < 12; i++) {
+                    const imageNumber = imageNumbers[i]; // Get the random image number
+                    
                     const card = document.createElement('div');
                     card.classList.add('card');
-                    card.dataset.id = i;
+                    card.dataset.id = i; // Use the loop index (0-11) as the card's ID
 
                     const img = document.createElement('img');
                     img.classList.add('card-image');
-                    img.src = `${i}.png`; // Your image files
+                    img.src = `${imageNumber}.png`; // Use the random image number
                     img.alt = `Scratch Card ${i}`;
                     // Handle image load errors
                     img.onerror = () => {
-                        img.alt = `Error loading ${i}.png`;
+                        img.alt = `Error loading ${imageNumber}.png`;
                         // You could show a placeholder here
                     };
 
@@ -222,21 +237,21 @@
                     }, 0);
 
 
-                    // --- Event Listeners for scratching ---
+                    // --- Event Listeners for scratching (updated to use index 'i') ---
                     const startScratch = (e) => {
-                        if (cardStates[i-1]) return; // Already revealed
+                        if (cardStates[i]) return; // Already revealed
                         isDrawing = true;
                         scratch(e, ctx, canvas);
                     };
 
                     const endScratch = (e) => {
-                        if (cardStates[i-1]) return;
+                        if (cardStates[i]) return;
                         isDrawing = false;
                         checkReveal(ctx, canvas, card, img.src);
                     };
 
                     const scratch = (e, ctx, canvas) => {
-                        if (!isDrawing || cardStates[i-1]) return;
+                        if (!isDrawing || cardStates[i]) return;
 
                         e.preventDefault(); // Prevent page scrolling
 
@@ -277,7 +292,8 @@
             }
 
             function checkReveal(ctx, canvas, card, imgSrc) {
-                if (cardStates[card.dataset.id - 1]) return; // Already checked
+                // Use the card's dataset.id (which is 0-11) to check its state
+                if (cardStates[card.dataset.id]) return; // Already checked
 
                 const canvasWidth = canvas.width;
                 const canvasHeight = canvas.height;
@@ -296,7 +312,7 @@
                 const scratchedPercentage = (transparentPixels / totalPixels) * 100;
 
                 if (scratchedPercentage > 80) {
-                    cardStates[card.dataset.id - 1] = true; // Mark as revealed
+                    cardStates[card.dataset.id] = true; // Mark as revealed using its 0-11 index
                     card.classList.add('revealed');
                     canvas.style.opacity = '0'; // Fade out canvas
                     
