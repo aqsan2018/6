@@ -156,6 +156,10 @@
         <div id="revealed-images-container">
             <!-- Revealed images will be added here -->
         </div>
+        <!-- ADDED THIS BUTTON -->
+        <button id="try-again-button" class="mt-8 bg-pink-600 text-white font-bold py-3 px-6 rounded-full text-lg shadow-lg hover:bg-pink-700 transition-colors">
+            Try Again
+        </button>
     </div>
 
     <!-- Audio files -->
@@ -169,6 +173,8 @@
             const revealedImagesContainer = document.getElementById('revealed-images-container');
             const scratchSound = document.getElementById('scratch-sound');
             const revealSound = document.getElementById('reveal-sound');
+            // GET THE NEW BUTTON
+            const tryAgainButton = document.getElementById('try-again-button');
 
             let isDrawing = false;
             let scratchedInRound = 0;
@@ -326,19 +332,21 @@
                 scratchedInRound = 0;
                 revealedImagesInRound = [];
 
-                // Auto-close the modal after 5 seconds
-                setTimeout(() => {
-                    roundCompleteScreen.classList.add('hidden');
-                    if (rainInterval) clearInterval(rainInterval); // Stop the rain
-                    // Remove any lingering rain elements
-                    document.querySelectorAll('.kiss-rain').forEach(el => el.remove());
-                    
-                    // Check for game end
-                    if (cardStates.every(state => state === true)) {
-                        gameBoard.innerHTML = `<h2 class="text-4xl font-bold text-pink-400 text-center col-span-3 sm:col-span-4">All done! You're the best!</h2>`;
-                    }
-                }, 5000); // 5-second delay
+                // REMOVED THE 5-SECOND TIMEOUT
             }
+
+            // ADDED EVENT LISTENER FOR THE NEW BUTTON
+            tryAgainButton.addEventListener('click', () => {
+                roundCompleteScreen.classList.add('hidden');
+                if (rainInterval) clearInterval(rainInterval); // Stop the rain
+                // Remove any lingering rain elements
+                document.querySelectorAll('.kiss-rain').forEach(el => el.remove());
+                
+                // Check for game end
+                if (cardStates.every(state => state === true)) {
+                    gameBoard.innerHTML = `<h2 class="text-4xl font-bold text-pink-400 text-center col-span-3 sm:col-span-4">All done! You're the best!</h2>`;
+                }
+            });
 
             function createRain(emoji) {
                 const rain = document.createElement('div');
