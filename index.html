@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Scratch-Off</title>
+    <title>Scratch and Reveal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: #000; /* Black background */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -83,10 +82,7 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.7);
             z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            /* 'display: flex' and related properties are now handled by Tailwind classes in the HTML */
             backdrop-filter: blur(10px);
         }
 
@@ -116,18 +112,6 @@
             animation: slide-in 0.5s ease-out forwards;
         }
 
-        #next-round-button {
-            margin-top: 2rem;
-            padding: 0.75rem 1.5rem;
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: white;
-            background-color: #db2777;
-            border: none;
-            border-radius: 99px;
-            cursor: pointer;
-        }
-
         /* Kiss rain animation */
         .kiss-rain {
             position: fixed;
@@ -153,7 +137,7 @@
 
     </style>
 </head>
-<body class="">
+<body class="bg-black">
 
     <div id="game-wrapper">
         <h1 class="text-3xl font-bold text-center text-pink-400 mb-4">Scratch and reveal</h1>
@@ -162,12 +146,16 @@
         </div>
     </div>
 
-    <!-- Round complete modal -->
-    <div id="round-complete-screen" class="hidden">
+    <!-- 
+      FIX: Added Tailwind 'flex' classes here. 
+      The 'hidden' class (display: none) will now work correctly 
+      to hide the modal on load. When 'hidden' is removed, 
+      the 'flex' classes will activate.
+    -->
+    <div id="round-complete-screen" class="hidden flex flex-col items-center justify-center">
         <div id="revealed-images-container">
             <!-- Revealed images will be added here -->
         </div>
-        <button id="next-round-button">Continue</button>
     </div>
 
     <!-- Audio files -->
@@ -179,7 +167,6 @@
             const gameBoard = document.getElementById('game-board');
             const roundCompleteScreen = document.getElementById('round-complete-screen');
             const revealedImagesContainer = document.getElementById('revealed-images-container');
-            const nextRoundButton = document.getElementById('next-round-button');
             const scratchSound = document.getElementById('scratch-sound');
             const revealSound = document.getElementById('reveal-sound');
 
@@ -338,6 +325,19 @@
                 // Reset for next round
                 scratchedInRound = 0;
                 revealedImagesInRound = [];
+
+                // Auto-close the modal after 5 seconds
+                setTimeout(() => {
+                    roundCompleteScreen.classList.add('hidden');
+                    if (rainInterval) clearInterval(rainInterval); // Stop the rain
+                    // Remove any lingering rain elements
+                    document.querySelectorAll('.kiss-rain').forEach(el => el.remove());
+                    
+                    // Check for game end
+                    if (cardStates.every(state => state === true)) {
+                        gameBoard.innerHTML = `<h2 class="text-4xl font-bold text-pink-400 text-center col-span-3 sm:col-span-4">All done! You're the best!</h2>`;
+                    }
+                }, 5000); // 5-second delay
             }
 
             function createRain(emoji) {
@@ -345,7 +345,7 @@
                 rain.classList.add('kiss-rain');
                 rain.textContent = emoji;
                 rain.style.left = `${Math.random() * 100}vw`;
-                rain.style.animationDuration = `${Math.random() * 2 + 3}s`; // 3-5 second fall
+                rain.style.animationDuration = `${Math.random()*2 + 3}s`; // 3-5 second fall
                 document.body.appendChild(rain);
 
                 setTimeout(() => {
@@ -353,22 +353,9 @@
                 }, 5000); // Remove after 5 seconds
             }
 
-            nextRoundButton.addEventListener('click', () => {
-                roundCompleteScreen.classList.add('hidden');
-                if (rainInterval) clearInterval(rainInterval); // Stop the rain
-                // Remove any lingering rain elements
-                document.querySelectorAll('.kiss-rain').forEach(el => el.remove());
-                
-                // Check for game end
-                if (cardStates.every(state => state === true)) {
-                    gameBoard.innerHTML = `<h2 class="text-4xl font-bold text-pink-400 text-center col-span-3 sm:col-span-4">All done! You're the best!</h2>`;
-                }
-            });
-
-            initGame();
+        initGame();
         });
     </script>
 </body>
 </html>
-
 
