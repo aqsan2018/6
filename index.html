@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Scratch and Reveal</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎁</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Playfair+Display:ital,wght@0,500;1,600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Cosmic (preloader + lock — reused site-to-site) */
+            --space-0: #05060d;
+            --cyan:    #ff8a5c;
+            --cyan-2:  #ff2d7a;
+            --violet:  #7a0929;
+            --pink:    #ff5c8a;
+            --glass-bg:  rgba(255,255,255,0.06);
+            --glass-brd: rgba(255,255,255,0.18);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.6);
+            --grad-cta:  linear-gradient(135deg, #ff8a5c 0%, #e11d48 55%, #7a0929 100%);
+
+            /* Ember Silk — main content palette */
+            --noir:      #0a0509;
+            --wine:      #2a0913;
+            --velvet:    #4d0f2b;
+            --crimson:   #b8123f;
+            --rouge:     #e11d48;
+            --hotpink:   #ff2d7a;
+            --blush:     #ff8fb1;
+            --rose-gold: #e08a3c;
+            --champagne: #ffcbb0;
+
+            --grad-rouge: linear-gradient(135deg, #ff2d7a 0%, #e11d48 45%, #7a0929 100%);
+            --grad-gold:  linear-gradient(135deg, #ffcbb0 0%, #e08a3c 55%, #7a3a1a 100%);
+        }
+
+        html, body {
+            height: 100%; margin: 0; padding: 0;
+            font-family: 'Inter', system-ui, sans-serif;
+            color: #fff;
+            touch-action: none;
+        }
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background:
+              radial-gradient(1400px 900px at 20% 15%, rgba(225,29,72,0.28) 0%, transparent 55%),
+              radial-gradient(1100px 800px at 85% 85%, rgba(212,165,116,0.18) 0%, transparent 55%),
+              radial-gradient(900px 700px at 60% 40%, rgba(255,45,122,0.15) 0%, transparent 60%),
+              linear-gradient(160deg, #0a0509 0%, #2a0913 55%, #4d0f2b 100%);
+        }
+        * { box-sizing: border-box; }
+
+        /* =====================================================
+           PRELOADER — Cosmic heart (reused across sites)
+           ===================================================== */
+        #loader {
+            position: fixed; inset: 0; z-index: 300;
+            background:
+              radial-gradient(1200px 700px at 20% 10%, rgba(225,29,72,0.35) 0%, transparent 60%),
+              radial-gradient(900px 700px at 90% 90%, rgba(255,45,122,0.30) 0%, transparent 55%),
+              radial-gradient(ellipse at center, #2a0a14 0%, #05060d 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity .7s ease; overflow: hidden;
+        }
+        #loader .stage { position: relative; width: 160px; height: 160px; display: flex; align-items: center; justify-content: center; }
+        .loader-heart {
+            width: 86px; height: 86px;
+            animation: beat 1.1s ease-in-out infinite;
+            filter: drop-shadow(0 10px 24px rgba(255,92,138,0.55)) drop-shadow(0 0 30px rgba(255,138,92,0.35));
+        }
+        .loader-heart svg { width: 100%; height: 100%; display: block; }
+        @keyframes beat {
+            0%,100% { transform: scale(1); }
+            30% { transform: scale(1.22); }
+            45% { transform: scale(.95); }
+            65% { transform: scale(1.12); }
+            80% { transform: scale(.98); }
+        }
+        #loader .petals { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+        #loader .petal {
+            position: absolute; bottom: -20px; width: 3px; height: 3px;
+            background: #fff; border-radius: 50%;
+            box-shadow: 0 0 6px #fff, 0 0 12px #ff2d7a;
+            opacity: .8; animation: rise linear infinite;
+        }
+        @keyframes rise {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: .95; }
+            100% { transform: translateY(-110vh); opacity: 0; }
+        }
+        #loader .msg {
+            margin-top: 28px; font-family:'Playfair Display', serif; font-style: italic;
+            color: #ffe4d6; letter-spacing: .06em; font-size: 18px;
+            min-height: 26px; text-align: center;
+            text-shadow: 0 0 12px rgba(255,45,122,.4);
+            animation: msgFade .6s ease;
+        }
+        #loader .dots { display:inline-block; width: 22px; text-align:left; }
+        #loader .dots::after { content:''; animation: dots 1.4s steps(4, end) infinite; }
+        @keyframes dots { 0%{content:'';} 25%{content:'.';} 50%{content:'..';} 75%{content:'...';} 100%{content:'';} }
+        @keyframes msgFade { from { opacity:0; transform: translateY(6px);} to { opacity:1; transform:none;} }
+        #loader .hint {
+            margin-top: 10px; font-size: 12px; color: #ffb59c;
+            letter-spacing:.22em; text-transform: uppercase; opacity:.8;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* =====================================================
+           LOCK — Cosmic glassmorphic keypad (reused across sites)
+           ===================================================== */
+        #password-overlay {
+            position: fixed; inset: 0; z-index: 200;
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+            background:
+                radial-gradient(1000px 600px at 20% 10%, rgba(225,29,72,0.35) 0%, transparent 60%),
+                radial-gradient(800px 600px at 90% 90%, rgba(255,45,122,0.30) 0%, transparent 55%),
+                rgba(5,6,13,0.75);
+            backdrop-filter: blur(14px) saturate(140%);
+            transition: opacity .5s ease;
+        }
+        #lock-box {
+            width: 100%; max-width: 380px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            border-radius: 24px;
+            padding: 32px 28px 28px;
+            backdrop-filter: blur(24px) saturate(160%);
+            box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,0.15);
+            text-align: center;
+            animation: floatIn .7s cubic-bezier(.2,.9,.2,1.1) both;
+        }
+        @keyframes floatIn { from { opacity: 0; transform: translateY(20px) scale(.96); } to { opacity: 1; transform: none; } }
+
+        .lock-icon {
+            width: 84px; height: 84px; margin: 0 auto 14px;
+            position: relative; display: grid; place-items: center;
+            border-radius: 50%;
+            background: var(--grad-cta);
+            box-shadow: 0 12px 30px rgba(255,45,122,.45), inset 0 2px 0 rgba(255,255,255,.35);
+            animation: lockEntry 1.1s cubic-bezier(.2,.9,.2,1.3) both, lockBreath 3.6s ease-in-out 1.1s infinite;
+        }
+        .lock-icon::before {
+            content: ''; position: absolute; inset: -14px; border-radius: 50%;
+            border: 2px solid rgba(255,138,92,.6);
+            opacity: 0; animation: haloRing 2.8s ease-out 1.2s infinite;
+            pointer-events: none;
+        }
+        .lock-icon svg { width: 42px; height: 42px; color: white; position: relative; z-index: 1; overflow: visible; }
+        .lock-icon .shackle {
+            transition: transform .6s cubic-bezier(.5,-0.4,.3,1.6);
+            transform-origin: 0% 100%;
+            transform-box: fill-box;
+            animation: shackleJiggle 4s ease-in-out 1.4s infinite;
+        }
+        .lock-icon.unlocked { animation: lockPop .8s cubic-bezier(.2,.9,.2,1.4) both; }
+        .lock-icon.unlocked .shackle { transform: rotate(-48deg) translate(0,-10px); animation: none; }
+        .lock-icon::after {
+            content: ''; position: absolute; inset: -8px; border-radius: 50%;
+            background: radial-gradient(closest-side, rgba(255,138,92,.7), transparent 70%);
+            opacity: 0; transition: opacity .5s; pointer-events: none;
+        }
+        .lock-icon.unlocked::after { opacity: 1; animation: pulseGlow 1s ease-out; }
+        .lock-icon.wrong { animation: duduNo .55s cubic-bezier(.36,.07,.19,.97) both; }
+        .lock-icon.wrong svg { animation: gifPop .55s ease-out both; }
+        .lock-icon.wrong::after {
+            opacity: 1;
+            background: radial-gradient(closest-side, rgba(255,92,138,.8), transparent 70%);
+            animation: pulseGlow .6s ease-out;
+        }
+        @keyframes duduNo {
+            0%, 100% { transform: translateX(0) rotate(0); }
+            15% { transform: translateX(-10px) rotate(-4deg); }
+            30% { transform: translateX(10px)  rotate(4deg); }
+            45% { transform: translateX(-8px)  rotate(-3deg); }
+            60% { transform: translateX(8px)   rotate(3deg); }
+            80% { transform: translateX(-3px)  rotate(-1deg); }
+        }
+        @keyframes gifPop {
+            0%   { transform: scale(1); }
+            35%  { transform: scale(1.12); }
+            70%  { transform: scale(.96); }
+            100% { transform: scale(1); }
+        }
+        @keyframes pulseGlow { 0% { transform: scale(.9); opacity: .9; } 100% { transform: scale(1.8); opacity: 0; } }
+        @keyframes lockEntry {
+            0%   { opacity: 0; transform: translateY(-30px) scale(.4) rotate(-18deg); }
+            60%  { opacity: 1; transform: translateY(6px) scale(1.08) rotate(4deg); }
+            80%  { transform: translateY(-2px) scale(.98) rotate(-2deg); }
+            100% { opacity: 1; transform: none; }
+        }
+        @keyframes lockBreath {
+            0%,100% { box-shadow: 0 12px 30px rgba(255,45,122,.45), inset 0 2px 0 rgba(255,255,255,.35); transform: scale(1); }
+            50%     { box-shadow: 0 18px 44px rgba(255,138,92,.6), inset 0 2px 0 rgba(255,255,255,.5); transform: scale(1.04); }
+        }
+        @keyframes shackleJiggle {
+            0%, 88%, 100% { transform: rotate(0) translateY(0); }
+            92% { transform: rotate(-6deg) translateY(-1px); }
+            96% { transform: rotate(5deg) translateY(-1px); }
+        }
+        @keyframes haloRing {
+            0%   { opacity: .6; transform: scale(.85); }
+            80%  { opacity: 0;   transform: scale(1.35); }
+            100% { opacity: 0;   transform: scale(1.35); }
+        }
+        @keyframes lockPop {
+            0%   { transform: scale(1); }
+            35%  { transform: scale(1.22) rotate(-6deg); }
+            65%  { transform: scale(.94) rotate(3deg); }
+            100% { transform: scale(1) rotate(0); }
+        }
+        #lock-box h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px; color: #ffe4d6; margin: 0 0 4px;
+            letter-spacing: .05em;
+            text-shadow: 0 0 12px rgba(255,45,122,.4);
+        }
+        #lock-box .sub {
+            font-size: 13px; color: rgba(232,244,255,.65);
+            margin: 0 0 18px;
+            font-family: 'Inter', sans-serif;
+        }
+        #password-input {
+            font-family: 'Orbitron', sans-serif;
+            width: 100%; padding: 14px 16px;
+            border-radius: 12px;
+            border: 1.5px solid rgba(255,45,122,.35);
+            background: rgba(9,10,21,.65);
+            color: #fff;
+            font-size: 1.25rem; text-align: center; letter-spacing: 8px;
+            transition: all .25s ease;
+            box-sizing: border-box;
+        }
+        #password-input:focus {
+            outline: none; border-color: var(--cyan);
+            background: rgba(9,10,21,.85);
+            box-shadow: 0 0 0 4px rgba(255,138,92,.18);
+        }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+        .key {
+            padding: 14px 0; border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.12);
+            background: rgba(255,255,255,.05);
+            color: #ffe4d6;
+            font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 600;
+            cursor: pointer; user-select: none;
+            transition: transform .12s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+            backdrop-filter: blur(8px);
+            animation: keyIn .5s ease both;
+        }
+        .key:hover { background: rgba(255,45,122,.15); border-color: rgba(255,138,92,.5); }
+        .key:active { transform: scale(.92); box-shadow: 0 4px 12px rgba(255,45,122,.35); }
+        .key.action { background: var(--grad-cta); color: white; border: none; }
+        .key.action:hover { filter: brightness(1.1); }
+        .key.ghost { background: rgba(255,255,255,.03); }
+        @keyframes keyIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+        .keypad .key:nth-child(1){animation-delay:.05s}.keypad .key:nth-child(2){animation-delay:.09s}
+        .keypad .key:nth-child(3){animation-delay:.13s}.keypad .key:nth-child(4){animation-delay:.17s}
+        .keypad .key:nth-child(5){animation-delay:.21s}.keypad .key:nth-child(6){animation-delay:.25s}
+        .keypad .key:nth-child(7){animation-delay:.29s}.keypad .key:nth-child(8){animation-delay:.33s}
+        .keypad .key:nth-child(9){animation-delay:.37s}.keypad .key:nth-child(10){animation-delay:.41s}
+        .keypad .key:nth-child(11){animation-delay:.45s}.keypad .key:nth-child(12){animation-delay:.49s}
+        #submit-button { display: none; }
+        #error-message {
+            color: #ff8fb1;
+            font-family: 'Inter', sans-serif;
+            font-size: .88rem; height: 1.1rem; margin-top: 10px; font-weight: 500;
+            text-shadow: 0 0 8px rgba(255,92,138,.3);
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        .shake { animation: shake 0.3s ease-in-out; }
+        #wrong-gif {
+            display: none;
+            width: 150px; height: 150px;
+            border-radius: 18px;
+            margin: 12px auto 0;
+            object-fit: cover;
+            box-shadow: 0 12px 28px rgba(255,45,122,.25), 0 0 0 1px rgba(255,255,255,.18);
+        }
+        #wrong-gif.show { display: block; animation: floatIn .3s ease both; }
+
+        /* =====================================================
+           MAIN CONTENT — Ember Silk scratch cards
+           ===================================================== */
+        #main-content {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.6s ease-in;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 3.5rem 1rem 2rem;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        #main-content.visible { visibility: visible; opacity: 1; }
+
+        #game-wrapper {
+            width: 100%;
+            max-width: 900px;
+            position: relative;
+        }
+
+        #game-title {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-weight: 600;
+            text-align: center;
+            font-size: 2.6rem;
+            margin: 0 0 1.6rem;
+            background: linear-gradient(120deg, #ffcbb0 10%, #ff8fb1 35%, #ff2d7a 55%, #e08a3c 80%, #ffcbb0 95%);
+            background-size: 200% 100%;
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 6px 22px rgba(255,45,122,.45));
+            animation: shimmer 7s linear infinite;
+            letter-spacing: .01em;
+        }
+        #game-title small {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            font-style: normal;
+            font-size: .28em;
+            letter-spacing: .38em;
+            text-transform: uppercase;
+            color: var(--rose-gold);
+            -webkit-text-fill-color: var(--rose-gold);
+            margin-top: 8px;
+            opacity: .8;
+        }
+        @keyframes shimmer {
+            from { background-position: 200% 0; }
+            to   { background-position: -200% 0; }
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            position: relative;
+            z-index: 20;
+        }
+        @media (min-width: 640px) {
+            #game-board { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .card {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 1rem;
+            overflow: hidden;
+            background: linear-gradient(160deg, #fff5ed, #fbe0ea);
+            box-shadow:
+              0 10px 26px rgba(10,5,9,.55),
+              0 0 0 1px rgba(212,165,116,.25),
+              inset 0 1px 0 rgba(255,255,255,.6);
+            transition: transform .3s ease, box-shadow .3s ease;
+        }
+        .card:hover { transform: translateY(-2px); }
+        .card.revealed {
+            border: 2px solid var(--rose-gold);
+            box-shadow:
+              0 0 0 3px rgba(255,45,122,.35),
+              0 14px 34px rgba(225,29,72,.55),
+              0 0 40px rgba(255,143,177,.4);
+            animation: revealPop .55s cubic-bezier(.2,.9,.2,1.4) both;
+        }
+        @keyframes revealPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.07); }
+            100% { transform: scale(1); }
+        }
+
+        .card-image {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: contain;
+            padding: 0.75rem;
+            z-index: 1;
+        }
+
+        .scratch-canvas {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 2;
+            cursor: grabbing;
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* Round complete modal — velvet glass */
+        #round-complete-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background:
+              radial-gradient(1000px 700px at 20% 15%, rgba(225,29,72,.55), transparent 60%),
+              radial-gradient(900px 700px at 85% 85%, rgba(212,165,116,.4), transparent 60%),
+              linear-gradient(160deg, rgba(10,5,9,.85), rgba(77,15,43,.85));
+            backdrop-filter: blur(16px) saturate(140%);
+        }
+
+        #revealed-images-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+        @media (min-width: 640px) {
+            #revealed-images-container { flex-direction: row; }
+        }
+
+        .revealed-modal-image {
+            width: 170px; height: 170px;
+            border-radius: 1rem;
+            background: linear-gradient(160deg, #fff5ed, #fbe0ea);
+            object-fit: contain;
+            padding: 0.5rem;
+            box-shadow:
+              0 20px 44px rgba(10,5,9,.7),
+              0 0 30px rgba(255,45,122,.45),
+              inset 0 1px 0 rgba(255,255,255,.7);
+            border: 1.5px solid rgba(212,165,116,.55);
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slide-in 0.55s ease-out forwards;
+        }
+
+        #try-again-button {
+            position: relative; z-index: 2;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            padding: 14px 38px;
+            border-radius: 999px;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            background: var(--grad-rouge);
+            box-shadow:
+              0 14px 30px rgba(225,29,72,.5),
+              0 0 30px rgba(255,45,122,.35),
+              inset 0 1px 0 rgba(255,255,255,.35);
+            transition: transform .15s ease, filter .2s ease;
+        }
+        #try-again-button:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        #try-again-button:active { transform: translateY(0); }
+
+        /* Emoji rain — sits BEHIND the modal card so it never overlaps revealed cards */
+        .kiss-rain {
+            position: fixed;
+            top: -10vh;
+            font-size: 2rem;
+            pointer-events: none;
+            user-select: none;
+            animation: fall 5s linear forwards;
+            z-index: 90; /* below the modal (100) so it stays behind cards */
+            filter: drop-shadow(0 0 8px rgba(255,45,122,.7));
+        }
+        @keyframes fall {
+            0% { transform: translateY(0vh); opacity: 1; }
+            100% { transform: translateY(110vh); opacity: 1; }
+        }
+        @keyframes slide-in {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============ COSMIC PRELOADER ============ -->
+    <div id="loader">
+        <div class="petals" id="loaderPetals"></div>
+        <div class="stage">
+            <div class="loader-heart">
+                <svg viewBox="0 0 24 24" fill="url(#heartGrad)" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ff6f9f"/>
+                            <stop offset="55%" stop-color="#e02f7f"/>
+                            <stop offset="100%" stop-color="#8b1f55"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+            </div>
+        </div>
+        <p class="msg"><span id="loaderMsg">aligning the constellations</span><span class="dots"></span></p>
+        <p class="hint">your secret universe is loading</p>
+    </div>
+
+    <!-- ============ COSMIC PASSWORD LOCK ============ -->
+    <div id="password-overlay">
+        <form id="lock-box" autocomplete="off">
+            <div class="lock-icon" id="lockIcon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path class="shackle" d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    <rect x="4" y="11" width="16" height="10" rx="2"/>
+                </svg>
+            </div>
+            <h3>A Secret Universe</h3>
+            <p class="sub">Enter the little code you know ✨</p>
+            <input id="password-input" type="password" inputmode="numeric" maxlength="8" placeholder="• • • • • • • •" autocomplete="off">
+            <div class="keypad" id="keypad">
+                <button type="button" class="key" data-k="1">1</button>
+                <button type="button" class="key" data-k="2">2</button>
+                <button type="button" class="key" data-k="3">3</button>
+                <button type="button" class="key" data-k="4">4</button>
+                <button type="button" class="key" data-k="5">5</button>
+                <button type="button" class="key" data-k="6">6</button>
+                <button type="button" class="key" data-k="7">7</button>
+                <button type="button" class="key" data-k="8">8</button>
+                <button type="button" class="key" data-k="9">9</button>
+                <button type="button" class="key ghost" data-k="clear">⌫</button>
+                <button type="button" class="key" data-k="0">0</button>
+                <button type="submit" class="key action">Open</button>
+            </div>
+            <p id="error-message"></p>
+            <img id="wrong-gif" src="dudu-no-dudu.gif" alt="Dudu Bubu saying no">
+            <button id="submit-button" type="submit" aria-hidden="true">Unlock</button>
+        </form>
+    </div>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <div id="main-content">
+        <div id="game-wrapper">
+            <h1 id="game-title">Scratch &amp; Reveal<small>a little indulgence</small></h1>
+            <div id="game-board"></div>
+        </div>
+    </div>
+
+    <div id="round-complete-screen" class="hidden flex flex-col items-center justify-center">
+        <div id="revealed-images-container"></div>
+        <button id="try-again-button" class="mt-8">Try Again</button>
+    </div>
+
+    <audio id="scratch-sound" src="scratch_sound.mp3" preload="auto"></audio>
+    <audio id="reveal-sound" src="reveal_sound.mp3" preload="auto"></audio>
+
+    <script>
+        /* ---------- Cosmic loader ---------- */
+        (function initLoader(){
+            const petals = document.getElementById('loaderPetals');
+            if (petals) {
+                for (let i = 0; i < 40; i++) {
+                    const p = document.createElement('span');
+                    p.className = 'petal';
+                    p.style.left = Math.random() * 100 + '%';
+                    const dur = 6 + Math.random() * 8;
+                    p.style.animationDuration = dur + 's';
+                    p.style.animationDelay = (-Math.random() * dur) + 's';
+                    const size = 2 + Math.random() * 3;
+                    p.style.width = size + 'px';
+                    p.style.height = size + 'px';
+                    p.style.opacity = (.5 + Math.random() * .5).toFixed(2);
+                    petals.appendChild(p);
+                }
+            }
+            const msgEl = document.getElementById('loaderMsg');
+            const messages = [
+                'aligning the constellations',
+                'gathering stardust',
+                'lighting the galaxies',
+                'painting the night sky',
+                'almost ready for you'
+            ];
+            let mi = 0;
+            const msgTimer = setInterval(() => {
+                if (!msgEl) return;
+                mi = (mi + 1) % messages.length;
+                msgEl.style.animation = 'none';
+                void msgEl.offsetWidth;
+                msgEl.style.animation = '';
+                msgEl.textContent = messages[mi];
+            }, 1600);
+
+            const dismiss = () => {
+                clearInterval(msgTimer);
+                const l = document.getElementById('loader');
+                if (!l) return;
+                l.style.opacity = '0';
+                setTimeout(() => l.remove(), 700);
+            };
+            if (document.readyState === 'complete') setTimeout(dismiss, 1200);
+            else window.addEventListener('load', () => setTimeout(dismiss, 1200));
+            // Fallback so third-party assets never block dismiss
+            setTimeout(dismiss, 3500);
+        })();
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            /* ---------- Cosmic Lock ---------- */
+            const passwordOverlay = document.getElementById('password-overlay');
+            const lockBox = document.getElementById('lock-box');
+            const passwordInput = document.getElementById('password-input');
+            const errorMessage = document.getElementById('error-message');
+            const mainContent = document.getElementById('main-content');
+            const lockIcon = document.getElementById('lockIcon');
+            const wrongGif = document.getElementById('wrong-gif');
+            const correctPassword = "28072018";
+
+            let gameInited = false;
+            const showMain = () => {
+                mainContent.classList.add('visible');
+                if (!gameInited) { gameInited = true; initializeGame(); }
+            };
+
+            if (sessionStorage.getItem('isUnlocked') === 'true') {
+                passwordOverlay.style.display = 'none';
+                showMain();
+            }
+
+            document.getElementById('keypad').addEventListener('click', (e) => {
+                const k = e.target.closest('.key');
+                if (!k) return;
+                const v = k.dataset.k;
+                if (!v) return;
+                if (v === 'clear') passwordInput.value = passwordInput.value.slice(0, -1);
+                else if (passwordInput.value.length < 8) passwordInput.value += v;
+            });
+
+            lockBox.addEventListener('submit', (e) => {
+                e.preventDefault();
+                if (passwordInput.value === correctPassword) {
+                    sessionStorage.setItem('isUnlocked', 'true');
+                    if (wrongGif) wrongGif.classList.remove('show');
+                    lockIcon.classList.add('unlocked');
+                    setTimeout(() => {
+                        passwordOverlay.style.opacity = '0';
+                        setTimeout(() => { passwordOverlay.style.display = 'none'; }, 500);
+                        showMain();
+                    }, 600);
+                } else {
+                    errorMessage.textContent = 'Wrong Password. Try Again!';
+                    lockBox.classList.add('shake');
+                    lockIcon.classList.add('wrong');
+                    if (wrongGif) {
+                        wrongGif.classList.remove('show');
+                        void wrongGif.offsetWidth;
+                        wrongGif.classList.add('show');
+                    }
+                    passwordInput.value = '';
+                    setTimeout(() => {
+                        lockBox.classList.remove('shake');
+                        lockIcon.classList.remove('wrong');
+                    }, 600);
+                    setTimeout(() => {
+                        errorMessage.textContent = '';
+                        if (wrongGif) wrongGif.classList.remove('show');
+                    }, 2200);
+                }
+            });
+
+            /* ---------- Scratch & Reveal Game ---------- */
+            let gameBoard, roundCompleteScreen, revealedImagesContainer, scratchSound, revealSound, tryAgainButton;
+            let isDrawing, scratchedInRound, revealedImagesInRound, rainInterval, cardStates;
+            let imageNumbers;
+
+            function initializeGame() {
+                gameBoard = document.getElementById('game-board');
+                roundCompleteScreen = document.getElementById('round-complete-screen');
+                revealedImagesContainer = document.getElementById('revealed-images-container');
+                scratchSound = document.getElementById('scratch-sound');
+                revealSound = document.getElementById('reveal-sound');
+                tryAgainButton = document.getElementById('try-again-button');
+
+                isDrawing = false;
+                scratchedInRound = 0;
+                revealedImagesInRound = [];
+                rainInterval = null;
+                cardStates = new Array(12).fill(false);
+                imageNumbers = Array.from({length: 12}, (_, i) => i + 1);
+
+                function shuffleArray(array) {
+                    for (let i = array.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [array[i], array[j]] = [array[j], array[i]];
+                    }
+                }
+
+                function initBoard() {
+                    gameBoard.innerHTML = '';
+                    shuffleArray(imageNumbers);
+
+                    for (let i = 0; i < 12; i++) {
+                        const imageNumber = imageNumbers[i];
+
+                        const card = document.createElement('div');
+                        card.classList.add('card');
+                        card.dataset.id = i;
+
+                        const img = document.createElement('img');
+                        img.classList.add('card-image');
+                        img.src = `${imageNumber}.png`;
+                        img.alt = `Scratch Card ${i}`;
+                        img.onerror = () => { img.alt = `Error loading ${imageNumber}.png`; };
+
+                        const canvas = document.createElement('canvas');
+                        canvas.classList.add('scratch-canvas');
+
+                        card.appendChild(img);
+                        card.appendChild(canvas);
+                        gameBoard.appendChild(card);
+
+                        const ctx = canvas.getContext('2d');
+                        requestAnimationFrame(() => {
+                            if (canvas.offsetWidth > 0 && canvas.offsetHeight > 0) {
+                                canvas.width = canvas.offsetWidth;
+                                canvas.height = canvas.offsetHeight;
+                                // Velvet-rouge scratch coating
+                                const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+                                grad.addColorStop(0, '#4d0f2b');
+                                grad.addColorStop(0.5, '#b8123f');
+                                grad.addColorStop(1, '#e08a3c');
+                                ctx.fillStyle = grad;
+                                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                // Rose-gold flecks
+                                ctx.fillStyle = 'rgba(244,217,193,0.55)';
+                                for (let s = 0; s < 16; s++) {
+                                    ctx.beginPath();
+                                    ctx.arc(Math.random()*canvas.width, Math.random()*canvas.height, Math.random()*1.8+0.4, 0, Math.PI*2);
+                                    ctx.fill();
+                                }
+                                ctx.globalCompositeOperation = 'destination-out';
+                            }
+                        });
+
+                        const startScratch = (e) => {
+                            if (cardStates[i]) return;
+                            isDrawing = true;
+                            scratch(e, ctx, canvas);
+                        };
+                        const endScratch = () => { isDrawing = false; };
+                        const scratch = (e, ctx, canvas) => {
+                            if (!isDrawing || cardStates[i]) return;
+                            e.preventDefault();
+                            const rect = canvas.getBoundingClientRect();
+                            let x, y;
+                            if (e.touches) {
+                                x = e.touches[0].clientX - rect.left;
+                                y = e.touches[0].clientY - rect.top;
+                            } else {
+                                x = e.clientX - rect.left;
+                                y = e.clientY - rect.top;
+                            }
+                            if (scratchSound.paused || scratchSound.currentTime > 0.1) {
+                                scratchSound.currentTime = 0;
+                                scratchSound.play().catch(()=>{});
+                            }
+                            ctx.beginPath();
+                            ctx.arc(x, y, 20, 0, Math.PI * 2);
+                            ctx.fill();
+                            // Auto-reveal at 40% scratched — checked mid-drag
+                            checkReveal(ctx, canvas, card, img.src);
+                        };
+
+                        canvas.addEventListener('mousedown', startScratch);
+                        canvas.addEventListener('mousemove', (e) => scratch(e, ctx, canvas));
+                        canvas.addEventListener('mouseup', endScratch);
+                        canvas.addEventListener('mouseleave', endScratch);
+                        canvas.addEventListener('touchstart', startScratch, { passive: false });
+                        canvas.addEventListener('touchmove', (e) => scratch(e, ctx, canvas), { passive: false });
+                        canvas.addEventListener('touchend', endScratch);
+                    }
+                }
+
+                let checkThrottle = new WeakMap();
+                function checkReveal(ctx, canvas, card, imgSrc) {
+                    if (cardStates[card.dataset.id]) return;
+                    // throttle expensive getImageData to ~every 60ms per card
+                    const now = performance.now();
+                    const last = checkThrottle.get(card) || 0;
+                    if (now - last < 60) return;
+                    checkThrottle.set(card, now);
+
+                    const w = canvas.width, h = canvas.height;
+                    if (w === 0 || h === 0) return;
+                    const data = ctx.getImageData(0, 0, w, h).data;
+                    let transparent = 0;
+                    // sample every 4th pixel for speed
+                    for (let i = 3; i < data.length; i += 16) {
+                        if (data[i] === 0) transparent++;
+                    }
+                    const total = data.length / 16;
+                    const pct = (transparent / total) * 100;
+
+                    if (pct > 40) {
+                        cardStates[card.dataset.id] = true;
+                        // Auto-clear the rest of the coating
+                        ctx.clearRect(0, 0, w, h);
+                        card.classList.add('revealed');
+                        canvas.style.opacity = '0';
+                        canvas.style.pointerEvents = 'none';
+                        isDrawing = false;
+
+                        revealSound.currentTime = 0;
+                        revealSound.play().catch(()=>{});
+
+                        scratchedInRound++;
+                        revealedImagesInRound.push(imgSrc);
+                        if (scratchedInRound === 3) showRoundComplete();
+                    }
+                }
+
+                function showRoundComplete() {
+                    revealedImagesContainer.innerHTML = '';
+                    revealedImagesInRound.forEach((src, index) => {
+                        const img = document.createElement('img');
+                        img.src = src;
+                        img.classList.add('revealed-modal-image');
+                        img.style.animationDelay = `${index * 0.2}s`;
+                        revealedImagesContainer.appendChild(img);
+                    });
+
+                    roundCompleteScreen.classList.remove('hidden');
+                    if (rainInterval) clearInterval(rainInterval);
+                    document.querySelectorAll('.kiss-rain').forEach(el => el.remove());
+                    const emojis = ['💋','🌹','💖','✨','🥂'];
+                    rainInterval = setInterval(() => createRain(emojis[Math.floor(Math.random()*emojis.length)]), 220);
+
+                    scratchedInRound = 0;
+                    revealedImagesInRound = [];
+                }
+
+                tryAgainButton.addEventListener('click', () => {
+                    roundCompleteScreen.classList.add('hidden');
+                    if (rainInterval) clearInterval(rainInterval);
+                    document.querySelectorAll('.kiss-rain').forEach(el => el.remove());
+
+                    // Full reset — reshuffle positions and start fresh every time
+                    cardStates = new Array(12).fill(false);
+                    scratchedInRound = 0;
+                    revealedImagesInRound = [];
+                    isDrawing = false;
+                    initBoard();
+                });
+
+                function createRain(emoji) {
+                    const rain = document.createElement('div');
+                    rain.classList.add('kiss-rain');
+                    rain.textContent = emoji;
+                    rain.style.left = `${Math.random() * 100}vw`;
+                    rain.style.animationDuration = `${Math.random()*2 + 3}s`;
+                    document.body.appendChild(rain);
+                    setTimeout(() => rain.remove(), 5000);
+                }
+
+                initBoard();
+            }
+        });
+    </script>
+</body>
+</html>
